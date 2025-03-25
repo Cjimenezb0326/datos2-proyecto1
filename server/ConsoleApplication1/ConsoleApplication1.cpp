@@ -11,150 +11,108 @@
 #include <string.h>
 #include <ctime>
 #include <fstream>
+#include <iostream>
+#include <sstream>
 
-// Necesitas vincular con Ws2_32.lib
 #pragma comment(lib, "ws2_32.lib")
-// Variables globales para los parámetros, definidos directamente en el código
-int listenPort = 27015;      // Puerto de escucha
-size_t memSize = 10 * 1024 * 1024;  // Tamaño de la memoria (10 MB por defecto)
-std::string dumpFolder = "./dumps";  // Carpeta para los dumps
 
-// Función para generar el nombre del archivo de dump basado en la fecha y hora actual
+int listenPort = 27015;
+size_t memSize = 10 * 1024 * 1024;
+std::string dumpFolder = "./dumps";
+void* memory = nullptr;
+
 std::string generateDumpFilename() {
-    // Obtener la hora actual
     std::time_t t = std::time(nullptr);
     struct tm tm;
     localtime_s(&tm, &t);
-
-    // Formato de fecha y hora: YYYY-MM-DD_HH-MM-SS-SSS
     char filename[100];
-    snprintf(filename, sizeof(filename), "%04d-%02d-%02d_%02d-%02d-%02d-%03d.dump",
+    snprintf(filename, sizeof(filename), "%04d-%02d-%02d_%02d-%02d-%02d.dump",
         tm.tm_year + 1900, tm.tm_mon + 1, tm.tm_mday,
-        tm.tm_hour, tm.tm_min, tm.tm_sec,
-        0); // Aquí puedes agregar milisegundos si lo deseas
-
+        tm.tm_hour, tm.tm_min, tm.tm_sec);
     return dumpFolder + "/" + filename;
 }
 
-int main() {
-    // Validar que el tamaño de la memoria sea mayor que 0
-    if (memSize == 0) {
-        wprintf(L"El tamaño de la memoria (memsize) debe ser mayor a 0\n");
-        return 1;
+void handleClient(SOCKET ClientSocket) {
+    char buffer[1024];
+    int iResult;
+    while (true) {
+        memset(buffer, 0, sizeof(buffer));
+        iResult = recv(ClientSocket, buffer, sizeof(buffer), 0);
+        if (iResult <= 0) break;
+
+        // Mostrar lo que se recibe del cliente
+        std::cout << "Comando recibido: " << buffer << std::endl;
+
+        std::istringstream command(buffer);
+        std::string action;
+        command >> action;
+
+        if (action == "CREATE") {
+            size_t size;
+            std::string type;
+            command >> size >> type;
+            std::cout << "Comando CREATE recibido: tama�o = " << size << ", tipo = " << type << std::endl;
+            // Aqu� puedes a�adir l�gica para crear un espacio de memoria para el tipo de datos
+        }
+        else if (action == "SET") {
+            size_t id;
+            std::string value;
+            command >> id >> value;
+            std::cout << "Comando SET recibido: id = " << id << ", valor = " << value << std::endl;
+            // Aqu� puedes almacenar el valor en la memoria
+        }
+        else if (action == "GET") {
+            size_t id;
+            command >> id;
+            std::cout << "Comando GET recibido: id = " << id << std::endl;
+            // Aqu� puedes devolver el valor almacenado en la memoria
+        }
+        else if (action == "INCREASE") {
+            size_t id;
+            command >> id;
+            std::cout << "Comando INCREASE recibido: id = " << id << std::endl;
+            // Aqu� puedes incrementar el contador de referencias
+        }
+        else if (action == "DECREASE") {
+            size_t id;
+            command >> id;
+            std::cout << "Comando DECREASE recibido: id = " << id << std::endl;
+            // Aqu� puedes disminuir el contador de referencias
+        }
+        else if (action == "DUMP") {
+            std::ofstream dumpFile(generateDumpFilename(), std::ios::binary);
+            dumpFile.write((char*)memory, memSize);
+            std::cout << "Comando DUMP recibido, generando archivo de volcado." << std::endl;
+        }
+        else {
+            std::cout << "Comando no reconocido: " << action << std::endl;
+        }
     }
-
-    // Inicializar Winsock
-    WSADATA wsaData;
-    int iResult = WSAStartup(MAKEWORD(2, 2), &wsaData);
-    if (iResult != NO_ERROR) {
-        wprintf(L"WSAStartup falló con el error: %d\n", iResult);
-        return 1;
-    }
-
-    //----------------------
-    // Crear el socket para escuchar conexiones
-    SOCKET ListenSocket = INVALID_SOCKET;
-    ListenSocket = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
-    if (ListenSocket == INVALID_SOCKET) {
-        wprintf(L"Error al crear el socket: %ld\n", WSAGetLastError());
-        WSACleanup();
-        return 1;
-    }
-
-    //----------------------
-    // Preparar la dirección del servidor
-    sockaddr_in service;
-    service.sin_family = AF_INET;
-    service.sin_addr.s_addr = INADDR_ANY;  // Acepta conexiones desde cualquier IP
-    service.sin_port = htons(listenPort);  // Puerto de escucha
-
-    //----------------------
-    // Enlazar el socket con la dirección y puerto
-    iResult = bind(ListenSocket, (SOCKADDR*)&service, sizeof(service));
-    if (iResult == SOCKET_ERROR) {
-        wprintf(L"bind falló con el error: %ld\n", WSAGetLastError());
-        closesocket(ListenSocket);
-        WSACleanup();
-        return 1;
-    }
-
-    //----------------------
-    // Escuchar conexiones entrantes
-    iResult = listen(ListenSocket, SOMAXCONN);
-    if (iResult == SOCKET_ERROR) {
-        wprintf(L"listen falló con el error: %ld\n", WSAGetLastError());
-        closesocket(ListenSocket);
-        WSACleanup();
-        return 1;
-    }
-
-    wprintf(L"Servidor escuchando en el puerto %d...\n", listenPort);
-
-    //----------------------
-    // Aceptar una conexión entrante
-    SOCKET ClientSocket = INVALID_SOCKET;
-    ClientSocket = accept(ListenSocket, NULL, NULL);
-    if (ClientSocket == INVALID_SOCKET) {
-        wprintf(L"accept falló con el error: %ld\n", WSAGetLastError());
-        closesocket(ListenSocket);
-        WSACleanup();
-        return 1;
-    }
-
-    wprintf(L"Conexión aceptada desde un cliente.\n");
-
-    //----------------------
-    // Reservar memoria
-    void* memory = malloc(memSize);
-    if (!memory) {
-        wprintf(L"No se pudo reservar la memoria solicitada de %zu bytes\n", memSize);
-        return 1;
-    }
-
-    //----------------------
-    // Enviar un mensaje al cliente
-    const char* sendMessage = "Hola desde el servidor!";
-    iResult = send(ClientSocket, sendMessage, (int)strlen(sendMessage), 0);
-    if (iResult == SOCKET_ERROR) {
-        wprintf(L"send falló con el error: %ld\n", WSAGetLastError());
-        closesocket(ClientSocket);
-        closesocket(ListenSocket);
-        WSACleanup();
-        return 1;
-    }
-
-    wprintf(L"Mensaje enviado al cliente.\n");
-
-    //----------------------
-    // Generar el archivo de dump
-    std::string dumpFilename = generateDumpFilename();
-    std::ofstream dumpFile(dumpFilename);
-    dumpFile << "Estado de la memoria..." << std::endl;
-    dumpFile << "Tamaño de la memoria: " << memSize << " bytes" << std::endl;
-    dumpFile.close();
-
-    wprintf(L"Dump generado: %S\n", dumpFilename.c_str());  // Usar %S para strings estándar
-
-    //----------------------
-    // Liberar memoria
-    free(memory);
-
-    //----------------------
-    // Cerrar las conexiones
-    iResult = closesocket(ClientSocket);
-    if (iResult == SOCKET_ERROR) {
-        wprintf(L"closesocket falló con el error: %ld\n", WSAGetLastError());
-    }
-
-    iResult = closesocket(ListenSocket);
-    if (iResult == SOCKET_ERROR) {
-        wprintf(L"closesocket falló con el error: %ld\n", WSAGetLastError());
-    }
-
-    //----------------------
-    // Finalizar Winsock
-    WSACleanup();
-
-    return 0;
+    closesocket(ClientSocket);
 }
 
+int main() {
+    WSADATA wsaData;
+    WSAStartup(MAKEWORD(2, 2), &wsaData);
+    SOCKET ListenSocket = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
+    sockaddr_in service{};
+    service.sin_family = AF_INET;
+    service.sin_addr.s_addr = INADDR_ANY;
+    service.sin_port = htons(listenPort);
+    bind(ListenSocket, (SOCKADDR*)&service, sizeof(service));
+    listen(ListenSocket, SOMAXCONN);
+    memory = malloc(memSize);
+
+    std::cout << "Servidor escuchando en el puerto " << listenPort << std::endl;
+
+    while (true) {
+        SOCKET ClientSocket = accept(ListenSocket, NULL, NULL);
+        if (ClientSocket != INVALID_SOCKET) {
+            handleClient(ClientSocket);
+        }
+    }
+
+    free(memory);
+    WSACleanup();
+    return 0;
+}
