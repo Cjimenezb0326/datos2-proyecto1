@@ -10,7 +10,6 @@
 #include <iostream>
 #include <string>
 
-// Vincular con la biblioteca Winsock
 #pragma comment(lib, "ws2_32.lib")
 
 void sendCommand(SOCKET ConnectSocket, const std::string& command) {
@@ -72,17 +71,22 @@ int main() {
 
     std::string command;
     while (true) {
-        std::cout << "Ingrese un comando (Create, Set, Get, IncreaseRefCount, DecreaseRefCount, Exit): ";
+        std::cout << "Ingrese un comando (CREATE, SET, GET, IncreaseRefCount, DecreaseRefCount, DUMP, Exit): ";
         std::getline(std::cin, command);
 
         if (command == "Exit") {
+            sendCommand(ConnectSocket, "Exit");
             break;
         }
 
+        // Enviar comando al servidor
         sendCommand(ConnectSocket, command);
 
+        // Recibir y mostrar la respuesta del servidor
         std::string response = receiveResponse(ConnectSocket);
         std::cout << "Respuesta del servidor: " << response << std::endl;
+
+        // El cliente espera otro comando, por lo que el ciclo continúa
     }
 
     // Cerrar el socket

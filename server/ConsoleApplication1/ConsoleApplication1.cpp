@@ -20,7 +20,9 @@ int listenPort = 27015;
 size_t memSize = 10 * 1024 * 1024;
 std::string dumpFolder = "./dumps";
 void* memory = nullptr;
+size_t nextId = 1; // Para asignar IDs únicos
 
+// Función para generar el nombre del archivo de volcado con fecha y hora
 std::string generateDumpFilename() {
     std::time_t t = std::time(nullptr);
     struct tm tm;
@@ -32,6 +34,15 @@ std::string generateDumpFilename() {
     return dumpFolder + "/" + filename;
 }
 
+// Función para enviar respuestas al cliente
+void sendResponse(SOCKET ClientSocket, const std::string& response) {
+    int iResult = send(ClientSocket, response.c_str(), (int)response.size(), 0);
+    if (iResult == SOCKET_ERROR) {
+        std::cerr << "send falló con el error: " << WSAGetLastError() << std::endl;
+    }
+}
+
+// Función para manejar la comunicación con un cliente
 void handleClient(SOCKET ClientSocket) {
     char buffer[1024];
     int iResult;
@@ -52,42 +63,53 @@ void handleClient(SOCKET ClientSocket) {
             std::string type;
             command >> size >> type;
             std::cout << "Comando CREATE recibido: tamaño = " << size << ", tipo = " << type << std::endl;
-            // Aquí puedes añadir lógica para crear un espacio de memoria para el tipo de datos
+
+            // Aquí puedes crear un espacio de memoria en la memoria reservada
+            size_t id = nextId++;  // Asignar un ID único para este bloque de memoria
+            std::string response = "ID: " + std::to_string(id);  // Responder con el ID generado
+            sendResponse(ClientSocket, response);
         }
         else if (action == "SET") {
             size_t id;
             std::string value;
             command >> id >> value;
             std::cout << "Comando SET recibido: id = " << id << ", valor = " << value << std::endl;
-            // Aquí puedes almacenar el valor en la memoria
+            // Aquí deberías almacenar el valor en el bloque de memoria identificado por 'id'
+            sendResponse(ClientSocket, "OK");
         }
         else if (action == "GET") {
             size_t id;
             command >> id;
             std::cout << "Comando GET recibido: id = " << id << std::endl;
-            // Aquí puedes devolver el valor almacenado en la memoria
+            // Aquí deberías devolver el valor almacenado en el bloque de memoria identificado por 'id'
+            sendResponse(ClientSocket, "Valor del bloque de memoria");
         }
         else if (action == "INCREASE") {
             size_t id;
             command >> id;
             std::cout << "Comando INCREASE recibido: id = " << id << std::endl;
-            // Aquí puedes incrementar el contador de referencias
+            // Aquí deberías incrementar el contador de referencias para el bloque de memoria 'id'
+            sendResponse(ClientSocket, "RefCount incrementado");
         }
         else if (action == "DECREASE") {
             size_t id;
             command >> id;
             std::cout << "Comando DECREASE recibido: id = " << id << std::endl;
-            // Aquí puedes disminuir el contador de referencias
+            // Aquí deberías disminuir el contador de referencias para el bloque de memoria 'id'
+            sendResponse(ClientSocket, "RefCount decrementado");
         }
         else if (action == "DUMP") {
             std::ofstream dumpFile(generateDumpFilename(), std::ios::binary);
             dumpFile.write((char*)memory, memSize);
             std::cout << "Comando DUMP recibido, generando archivo de volcado." << std::endl;
+            sendResponse(ClientSocket, "Volcado de memoria generado");
         }
         else {
             std::cout << "Comando no reconocido: " << action << std::endl;
+            sendResponse(ClientSocket, "Comando no reconocido");
         }
     }
+
     closesocket(ClientSocket);
 }
 
@@ -101,7 +123,12 @@ int main() {
     service.sin_port = htons(listenPort);
     bind(ListenSocket, (SOCKADDR*)&service, sizeof(service));
     listen(ListenSocket, SOMAXCONN);
-    memory = malloc(memSize);
+
+    memory = malloc(memSize);  // Reservar memoria inicial
+    if (memory == nullptr) {
+        std::cerr << "Error al reservar memoria" << std::endl;
+        return 1;
+    }
 
     std::cout << "Servidor escuchando en el puerto " << listenPort << std::endl;
 
