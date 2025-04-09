@@ -13,14 +13,29 @@
 #include <fstream>
 #include <iostream>
 #include <sstream>
+#include <map>
 
 #pragma comment(lib, "ws2_32.lib")
 
 int listenPort = 27015;
-size_t memSize = 10 * 1024 * 1024;
+size_t memSize = 10 * 1024 * 1024; // 10 MB
 std::string dumpFolder = "./dumps";
 void* memory = nullptr;
 size_t nextId = 1; // Para asignar IDs únicos
+
+// Estructura de bloque de memoria
+struct MemoryBlock {
+    size_t id;
+    std::string type;
+    size_t size;
+    char* ptr;
+    std::string value;
+    int refCount;
+};
+
+// Mapa para almacenar los bloques de memoria por ID
+std::map<size_t, MemoryBlock> memoryBlocks;
+char* memoryCursor = nullptr;
 
 // Función para generar el nombre del archivo de volcado con fecha y hora
 std::string generateDumpFilename() {
@@ -51,7 +66,6 @@ void handleClient(SOCKET ClientSocket) {
         iResult = recv(ClientSocket, buffer, sizeof(buffer), 0);
         if (iResult <= 0) break;
 
-        // Mostrar lo que se recibe del cliente
         std::cout << "Comando recibido: " << buffer << std::endl;
 
         std::istringstream command(buffer);
@@ -62,41 +76,80 @@ void handleClient(SOCKET ClientSocket) {
             size_t size;
             std::string type;
             command >> size >> type;
-            std::cout << "Comando CREATE recibido: tamaño = " << size << ", tipo = " << type << std::endl;
 
-            // Aquí puedes crear un espacio de memoria en la memoria reservada
-            size_t id = nextId++;  // Asignar un ID único para este bloque de memoria
-            std::string response = "ID: " + std::to_string(id);  // Responder con el ID generado
+            if ((memoryCursor + size) > ((char*)memory + memSize)) {
+                sendResponse(ClientSocket, "ERROR: Memoria insuficiente");
+                continue;
+            }
+
+            size_t id = nextId++;
+            MemoryBlock block;
+            block.id = id;
+            block.type = type;
+            block.size = size;
+            block.ptr = memoryCursor;
+            block.refCount = 1;
+
+            memoryBlocks[id] = block;
+            memoryCursor += size;
+
+            std::string response = "ID: " + std::to_string(id);
             sendResponse(ClientSocket, response);
         }
         else if (action == "SET") {
             size_t id;
             std::string value;
             command >> id >> value;
-            std::cout << "Comando SET recibido: id = " << id << ", valor = " << value << std::endl;
-            // Aquí deberías almacenar el valor en el bloque de memoria identificado por 'id'
-            sendResponse(ClientSocket, "OK");
+
+            if (memoryBlocks.find(id) != memoryBlocks.end()) {
+                MemoryBlock& block = memoryBlocks[id];
+                if (value.size() > block.size) {
+                    sendResponse(ClientSocket, "ERROR: Valor excede tamaño del bloque");
+                    continue;
+                }
+
+                memcpy(block.ptr, value.c_str(), value.size());
+                block.value = value;
+                sendResponse(ClientSocket, "OK");
+            }
+            else {
+                sendResponse(ClientSocket, "ERROR: ID no encontrado");
+            }
         }
         else if (action == "GET") {
             size_t id;
             command >> id;
-            std::cout << "Comando GET recibido: id = " << id << std::endl;
-            // Aquí deberías devolver el valor almacenado en el bloque de memoria identificado por 'id'
-            sendResponse(ClientSocket, "Valor del bloque de memoria");
+
+            if (memoryBlocks.find(id) != memoryBlocks.end()) {
+                MemoryBlock& block = memoryBlocks[id];
+                std::string value(block.ptr, block.size);
+                sendResponse(ClientSocket, "Valor: " + value);
+            }
+            else {
+                sendResponse(ClientSocket, "ERROR: ID no encontrado");
+            }
         }
         else if (action == "INCREASE") {
             size_t id;
             command >> id;
-            std::cout << "Comando INCREASE recibido: id = " << id << std::endl;
-            // Aquí deberías incrementar el contador de referencias para el bloque de memoria 'id'
-            sendResponse(ClientSocket, "RefCount incrementado");
+            if (memoryBlocks.find(id) != memoryBlocks.end()) {
+                memoryBlocks[id].refCount++;
+                sendResponse(ClientSocket, "RefCount: " + std::to_string(memoryBlocks[id].refCount));
+            }
+            else {
+                sendResponse(ClientSocket, "ERROR: ID no encontrado");
+            }
         }
         else if (action == "DECREASE") {
             size_t id;
             command >> id;
-            std::cout << "Comando DECREASE recibido: id = " << id << std::endl;
-            // Aquí deberías disminuir el contador de referencias para el bloque de memoria 'id'
-            sendResponse(ClientSocket, "RefCount decrementado");
+            if (memoryBlocks.find(id) != memoryBlocks.end()) {
+                memoryBlocks[id].refCount--;
+                sendResponse(ClientSocket, "RefCount: " + std::to_string(memoryBlocks[id].refCount));
+            }
+            else {
+                sendResponse(ClientSocket, "ERROR: ID no encontrado");
+            }
         }
         else if (action == "DUMP") {
             std::ofstream dumpFile(generateDumpFilename(), std::ios::binary);
@@ -129,6 +182,8 @@ int main() {
         std::cerr << "Error al reservar memoria" << std::endl;
         return 1;
     }
+
+    memoryCursor = static_cast<char*>(memory);
 
     std::cout << "Servidor escuchando en el puerto " << listenPort << std::endl;
 
