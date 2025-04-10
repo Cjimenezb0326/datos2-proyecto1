@@ -1,9 +1,9 @@
 {
   "Version": 1,
-  "WorkspaceRootPath": "C:\\Users\\carlo\\Documents\\GitHub\\datos2-proyecto1\\server\\",
+  "WorkspaceRootPath": "C:\\Users\\Carlos Jimenez\\Documents\\GitHub\\datos2-proyecto1\\server\\",
   "Documents": [
     {
-      "AbsoluteMoniker": "D:0:0:{03819121-A047-4A73-B990-2173E3918721}|ConsoleApplication1\\ConsoleApplication1.vcxproj|C:\\Users\\carlo\\Documents\\GitHub\\datos2-proyecto1\\server\\ConsoleApplication1\\ConsoleApplication1.cpp||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}",
+      "AbsoluteMoniker": "D:0:0:{03819121-A047-4A73-B990-2173E3918721}|ConsoleApplication1\\ConsoleApplication1.vcxproj|C:\\Users\\Carlos Jimenez\\Documents\\GitHub\\datos2-proyecto1\\server\\ConsoleApplication1\\ConsoleApplication1.cpp||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}",
       "RelativeMoniker": "D:0:0:{03819121-A047-4A73-B990-2173E3918721}|ConsoleApplication1\\ConsoleApplication1.vcxproj|solutionrelative:ConsoleApplication1\\ConsoleApplication1.cpp||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}"
     }
   ],
@@ -14,25 +14,17 @@
       "DocumentGroups": [
         {
           "DockedWidth": 200,
-          "SelectedChildIndex": 2,
+          "SelectedChildIndex": 0,
           "Children": [
-            {
-              "$type": "Bookmark",
-              "Name": "ST:0:0:{34e76e81-ee4a-11d0-ae2e-00a0c90fffc3}"
-            },
-            {
-              "$type": "Bookmark",
-              "Name": "ST:128:0:{75188d03-9892-4ae2-abf1-207126247ce5}"
-            },
             {
               "$type": "Document",
               "DocumentIndex": 0,
               "Title": "ConsoleApplication1.cpp",
-              "DocumentMoniker": "C:\\Users\\carlo\\Documents\\GitHub\\datos2-proyecto1\\server\\ConsoleApplication1\\ConsoleApplication1.cpp",
+              "DocumentMoniker": "C:\\Users\\Carlos Jimenez\\Documents\\GitHub\\datos2-proyecto1\\server\\ConsoleApplication1\\ConsoleApplication1.cpp",
               "RelativeDocumentMoniker": "ConsoleApplication1\\ConsoleApplication1.cpp",
-              "ToolTip": "C:\\Users\\carlo\\Documents\\GitHub\\datos2-proyecto1\\server\\ConsoleApplication1\\ConsoleApplication1.cpp",
+              "ToolTip": "C:\\Users\\Carlos Jimenez\\Documents\\GitHub\\datos2-proyecto1\\server\\ConsoleApplication1\\ConsoleApplication1.cpp",
               "RelativeToolTip": "ConsoleApplication1\\ConsoleApplication1.cpp",
-              "ViewState": "AgIAAHIAAAAAAEBW+pUuwMgAAAAAAAAAAAAAAA==",
+              "ViewState": "AgIAALYAAAAAAAAAAAAAAMgAAAAAAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000677|",
               "WhenOpened": "2025-03-21T02:49:13.67Z",
               "EditorCaption": ""
