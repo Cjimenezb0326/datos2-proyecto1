@@ -14,6 +14,7 @@
 #include <iostream>
 #include <sstream>
 #include <map>
+#include <thread>
 
 #pragma comment(lib, "ws2_32.lib")
 
@@ -48,6 +49,66 @@ std::string generateDumpFilename() {
         tm.tm_hour, tm.tm_min, tm.tm_sec);
     return dumpFolder + "/" + filename;
 }
+#include <iostream>
+
+// Función para desfragmentar la memoria
+void defragment() {
+    char* newCursor = static_cast<char*>(memory);
+    bool fragmented = false;  // Flag para saber si hubo movimientos
+
+    for (auto& pair : memoryBlocks) {
+        if (pair.second.refCount > 0) {
+            if (pair.second.ptr != newCursor) {
+                std::cout << "Desfragmentando: Moviendo bloque desde " 
+                          << static_cast<void*>(pair.second.ptr) 
+                          << " a " << static_cast<void*>(newCursor) << std::endl;
+                memmove(newCursor, pair.second.ptr, pair.second.size);
+                pair.second.ptr = newCursor;
+                fragmented = true;
+            }
+            newCursor += pair.second.size;
+        }
+    }
+
+    memoryCursor = newCursor;
+
+    if (!fragmented) {
+        std::cout << "No se realizaron movimientos de desfragmentacion." << std::endl;
+    }
+}
+
+// Función para limpiar la memoria no utilizada
+void garbage_collector() {
+    bool deletedAnyBlock = false;  // Flag para saber si se eliminaron bloques
+
+    for (auto it = memoryBlocks.begin(); it != memoryBlocks.end(); ) {
+        if (it->second.refCount <= 0) {  // Si no hay referencias al bloque
+            std::cout << "Eliminando bloque con puntero " 
+                      << static_cast<void*>(it->second.ptr) 
+                      << " porque su refCount es " << it->second.refCount << std::endl;
+            it = memoryBlocks.erase(it);  // Elimina el bloque de la lista
+            deletedAnyBlock = true;
+        }
+        else {
+            ++it;
+        }
+    }
+
+    if (!deletedAnyBlock) {
+        std::cout << "No se eliminaron bloques de memoria." << std::endl;
+    }
+}
+
+void defragAndClean() {
+    while (true) {
+        std::this_thread::sleep_for(std::chrono::seconds(5));  
+        std::cout << "Iniciando recoleccion de basura..." << std::endl;
+        garbage_collector();
+        std::cout << "Iniciando desfragmentacion de memoria..." << std::endl;
+        defragment();
+    }
+}
+
 
 // Función para enviar respuestas al cliente
 void sendResponse(SOCKET ClientSocket, const std::string& response) {
@@ -186,6 +247,9 @@ int main() {
     memoryCursor = static_cast<char*>(memory);
 
     std::cout << "Servidor escuchando en el puerto " << listenPort << std::endl;
+
+    std::thread defrag_garbage_collector_Thread(defragAndClean);
+    defrag_garbage_collector_Thread.detach();
 
     while (true) {
         SOCKET ClientSocket = accept(ListenSocket, NULL, NULL);

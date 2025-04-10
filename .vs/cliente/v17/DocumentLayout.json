@@ -1,9 +1,13 @@
 {
   "Version": 1,
-  "WorkspaceRootPath": "C:\\Users\\Carlos Jimenez\\Documents\\GitHub\\datos2-proyecto1\\",
+  "WorkspaceRootPath": "C:\\Users\\Usuario I 2025\\source\\repos\\datos2-proyecto1\\",
   "Documents": [
     {
-      "AbsoluteMoniker": "D:0:0:{5576EB50-34DA-45F2-9136-BCB9F27E859F}|cliente\\cliente.vcxproj|C:\\Users\\Carlos Jimenez\\Documents\\GitHub\\datos2-proyecto1\\cliente\\cliente.cpp||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}",
+      "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|C:\\Users\\Usuario I 2025\\source\\repos\\datos2-proyecto1\\server\\ConsoleApplication1\\ConsoleApplication1.cpp||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}",
+      "RelativeMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|solutionrelative:server\\ConsoleApplication1\\ConsoleApplication1.cpp||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{5576EB50-34DA-45F2-9136-BCB9F27E859F}|cliente\\cliente.vcxproj|C:\\Users\\Usuario I 2025\\source\\repos\\datos2-proyecto1\\cliente\\cliente.cpp||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}",
       "RelativeMoniker": "D:0:0:{5576EB50-34DA-45F2-9136-BCB9F27E859F}|cliente\\cliente.vcxproj|solutionrelative:cliente\\cliente.cpp||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}"
     }
   ],
@@ -14,17 +18,34 @@
       "DocumentGroups": [
         {
           "DockedWidth": 200,
-          "SelectedChildIndex": 0,
+          "SelectedChildIndex": 1,
           "Children": [
+            {
+              "$type": "Bookmark",
+              "Name": "ST:128:0:{75188d03-9892-4ae2-abf1-207126247ce5}"
+            },
             {
               "$type": "Document",
               "DocumentIndex": 0,
+              "Title": "ConsoleApplication1.cpp",
+              "DocumentMoniker": "C:\\Users\\Usuario I 2025\\source\\repos\\datos2-proyecto1\\server\\ConsoleApplication1\\ConsoleApplication1.cpp",
+              "RelativeDocumentMoniker": "server\\ConsoleApplication1\\ConsoleApplication1.cpp",
+              "ToolTip": "C:\\Users\\Usuario I 2025\\source\\repos\\datos2-proyecto1\\server\\ConsoleApplication1\\ConsoleApplication1.cpp",
+              "RelativeToolTip": "server\\ConsoleApplication1\\ConsoleApplication1.cpp",
+              "ViewState": "AgIAAA8AAAAAZWZmZmYkwBoAAAAUAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000677|",
+              "WhenOpened": "2025-04-10T08:47:03.729Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 1,
               "Title": "cliente.cpp",
-              "DocumentMoniker": "C:\\Users\\Carlos Jimenez\\Documents\\GitHub\\datos2-proyecto1\\cliente\\cliente.cpp",
+              "DocumentMoniker": "C:\\Users\\Usuario I 2025\\source\\repos\\datos2-proyecto1\\cliente\\cliente.cpp",
               "RelativeDocumentMoniker": "cliente\\cliente.cpp",
-              "ToolTip": "C:\\Users\\Carlos Jimenez\\Documents\\GitHub\\datos2-proyecto1\\cliente\\cliente.cpp",
+              "ToolTip": "C:\\Users\\Usuario I 2025\\source\\repos\\datos2-proyecto1\\cliente\\cliente.cpp",
               "RelativeToolTip": "cliente\\cliente.cpp",
-              "ViewState": "AgIAAEgAAAAAAAAAAAAhwBQAAAABAAAAAAAAAA==",
+              "ViewState": "AgIAABsAAAAAAAAAAAAAAE0AAAAgAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000677|",
               "WhenOpened": "2025-04-05T01:00:44.893Z",
               "EditorCaption": ""
