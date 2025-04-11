@@ -22,7 +22,7 @@ int listenPort = 27015;
 size_t memSize = 10 * 1024 * 1024; // 10 MB
 std::string dumpFolder = "./dumps";
 void* memory = nullptr;
-size_t nextId = 1; // Para asignar IDs únicos
+size_t nextId = 1; 
 
 // Estructura de bloque de memoria
 struct MemoryBlock {
@@ -83,7 +83,7 @@ void garbage_collector() {
 
     for (auto it = memoryBlocks.begin(); it != memoryBlocks.end(); ) {
         if (it->second.refCount <= 0) {  // Si no hay referencias al bloque
-            std::cout << "Eliminando bloque con puntero " 
+            std::cout << "Eliminando bloque con direccion " 
                       << static_cast<void*>(it->second.ptr) 
                       << " porque su refCount es " << it->second.refCount << std::endl;
             it = memoryBlocks.erase(it);  // Elimina el bloque de la lista
@@ -211,6 +211,18 @@ void handleClient(SOCKET ClientSocket) {
             else {
                 sendResponse(ClientSocket, "ERROR: ID no encontrado");
             }
+        }
+        else if (action == "LISTA") {
+            std::string response = "Lista de bloques:\n";
+            for (const auto& pair : memoryBlocks) {
+                const MemoryBlock& block = pair.second;
+                std::stringstream hexStream;
+                hexStream << std::hex << reinterpret_cast<uintptr_t>(block.ptr);
+                response += "ID: " + std::to_string(block.id) + ", Tipo: " + block.type +
+                    ", Tamano: " + std::to_string(block.size) + ", Direccion: " +
+                    hexStream.str() + ", RefCount: " + std::to_string(block.refCount) + "\n";
+            }
+            sendResponse(ClientSocket, response);
         }
         else if (action == "DUMP") {
             std::ofstream dumpFile(generateDumpFilename(), std::ios::binary);
